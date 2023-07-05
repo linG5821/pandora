@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from jwt import decode
+from os import getenv
 
 from ..openai.utils import Console
 
@@ -21,11 +22,12 @@ def check_access_token(access_token, api=False):
 
     if api and (access_token.startswith('sk-') or access_token.startswith('pk-')):
         return True
-
+    
+    verify_signature = getenv('ACCESS_TOKEN_VERIFY_SIGNATURE', 'True') == 'True'
     payload = (decode(access_token, key=__public_key, algorithms='RS256', audience=[
         "https://api.openai.com/v1",
         "https://openai.openai.auth0app.com/userinfo"
-    ], issuer='https://auth0.openai.com/'))
+    ], issuer='https://auth0.openai.com/', options={"verify_signature": verify_signature}))
 
     if 'scope' not in payload:
         raise Exception('miss scope')
