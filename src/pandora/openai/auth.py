@@ -41,9 +41,14 @@ class Auth0:
     def auth(self, login_local=True) -> str:
         if self.use_cache and self.access_token and self.expires and self.expires > dt.now():
             return self.access_token
+        
+        custom_login = getenv('ENABLE_CUSTOM_LOGIN', 'True') == 'True'
 
-        # if not self.__check_email(self.email) or not self.password:
-        #     raise Exception('invalid email or password.')
+        if not custom_login:
+            if not self.__check_email(self.email) or not self.password:
+                raise Exception('invalid email or password.')
+        
+        login_local = not custom_login;
 
         return self.__part_two() if login_local else self.get_access_token_proxy()
 
