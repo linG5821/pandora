@@ -9,6 +9,8 @@ from os import getenv
 import requests
 from certifi import where
 
+from ..exts.config import default_api_prefix
+
 
 class Auth0:
     def __init__(self, email: str, password: str, proxy: str = None, use_cache: bool = True, mfa: str = None):
@@ -50,12 +52,25 @@ class Auth0:
         
         login_local = not custom_login;
 
-        return self.__part_two() if login_local else self.get_access_token_proxy()
+        return self.__part_one() if login_local else self.get_access_token_proxy()
 
     def get_refresh_token(self):
         return self.refresh_token
 
-    def __part_two(self) -> str:
+    def __part_one(self) -> str:
+        url = '{}/auth/preauth'.format(default_api_prefix())
+        resp = self.session.get(url, allow_redirects=False, **self.req_kwargs)
+
+        if resp.status_code == 200:
+            json = resp.json()
+            if 'preauth_cookie' not in json or not json['preauth_cookie']:
+                raise Exception('Get preauth cookie failed.')
+
+            return self.__part_two(json['preauth_cookie'])
+        else:
+            raise Exception('Error request preauth.')
+
+    def __part_two(self, preauth: str) -> str:
         code_challenge = 'w6n3Ix420Xhhu-Q5-mOOEyuPZmAsJHUbBpO8Ub7xBCY'
         code_verifier = 'yGrXROHx_VazA0uovsxKfE263LMFcrSrdm4SlC-rob8'
 
@@ -63,7 +78,7 @@ class Auth0:
               '%2Fapi.openai.com%2Fv1&redirect_uri=com.openai.chat%3A%2F%2Fauth0.openai.com%2Fios%2Fcom.openai.chat' \
               '%2Fcallback&scope=openid%20email%20profile%20offline_access%20model.request%20model.read' \
               '%20organization.read%20offline&response_type=code&code_challenge={}' \
-              '&code_challenge_method=S256&prompt=login'.format(code_challenge)
+              '&code_challenge_method=S256&prompt=login&preauth_cookie={}'.format(code_challenge, preauth)
         return self.__part_three(code_verifier, url)
 
     def __part_three(self, code_verifier, url: str) -> str:
