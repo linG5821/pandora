@@ -15,7 +15,7 @@ __public_key = b'-----BEGIN PUBLIC KEY-----\n' \
                b'-----END PUBLIC KEY-----'
 
 
-def check_access_token(access_token, api=False, login_local=True):
+def check_access_token(access_token, api=False, login_local=False):
     if access_token.startswith('fk-'):
         return True
 
@@ -25,7 +25,7 @@ def check_access_token(access_token, api=False, login_local=True):
     payload = (decode(access_token, key=__public_key, algorithms='RS256', audience=[
         "https://api.openai.com/v1",
         "https://openai.openai.auth0app.com/userinfo"
-    ], issuer='https://auth0.openai.com/', options={"verify_signature": not login_local}))
+    ], issuer='https://auth0.openai.com/', options={"verify_signature": login_local}))
 
     if 'scope' not in payload:
         raise Exception('miss scope')

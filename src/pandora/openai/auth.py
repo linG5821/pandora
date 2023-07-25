@@ -4,7 +4,7 @@ import datetime
 import re
 from datetime import datetime as dt
 from urllib.parse import urlparse, parse_qs
-
+from os import getenv
 import requests
 from certifi import where
 
@@ -42,7 +42,7 @@ class Auth0:
         if self.use_cache and self.access_token and self.expires and self.expires > dt.now():
             return self.access_token
 
-        if not login_local:
+        if login_local:
             if not self.__check_email(self.email) or not self.password:
                 raise Exception('invalid email or password.')
 
@@ -232,7 +232,8 @@ class Auth0:
         return self.__parse_access_token(resp)
 
     def get_access_token_proxy(self) -> str:
-        url = '{}/auth/login'.format(default_api_prefix())
+        api_prefix = getenv('CHATGPT_API_PREFIX', default_api_prefix())
+        url = '{}/api/auth/login'.format(api_prefix)
         headers = {
             'User-Agent': self.user_agent,
         }
