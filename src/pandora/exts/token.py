@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from jwt import decode
-from os import getenv
 
 from ..openai.utils import Console
 
@@ -16,18 +15,17 @@ __public_key = b'-----BEGIN PUBLIC KEY-----\n' \
                b'-----END PUBLIC KEY-----'
 
 
-def check_access_token(access_token, api=False):
+def check_access_token(access_token, api=False, login_local=True):
     if access_token.startswith('fk-'):
         return True
 
     if api and (access_token.startswith('sk-') or access_token.startswith('pk-')):
         return True
     
-    custom_login = getenv('ENABLE_CUSTOM_LOGIN', 'True') == 'True'
     payload = (decode(access_token, key=__public_key, algorithms='RS256', audience=[
         "https://api.openai.com/v1",
         "https://openai.openai.auth0app.com/userinfo"
-    ], issuer='https://auth0.openai.com/', options={"verify_signature": not custom_login}))
+    ], issuer='https://auth0.openai.com/', options={"verify_signature": not login_local}))
 
     if 'scope' not in payload:
         raise Exception('miss scope')

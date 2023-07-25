@@ -4,7 +4,7 @@ import datetime
 import re
 from datetime import datetime as dt
 from urllib.parse import urlparse, parse_qs
-from os import getenv
+
 import requests
 from certifi import where
 
@@ -41,9 +41,6 @@ class Auth0:
     def auth(self, login_local=False) -> str:
         if self.use_cache and self.access_token and self.expires and self.expires > dt.now():
             return self.access_token
-
-        custom_login = getenv('ENABLE_CUSTOM_LOGIN', 'True') == 'True'
-        login_local = not custom_login
 
         if not login_local:
             if not self.__check_email(self.email) or not self.password:
