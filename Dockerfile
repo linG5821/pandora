@@ -8,6 +8,6 @@ WORKDIR /opt/app
 
 ADD . .
 
-RUN pip --no-cache-dir install --upgrade pip && pip --no-cache-dir install .[api,cloud]
+RUN pip --no-cache-dir install --upgrade pip -i https://mirrors.aliyun.com/pypi/simple/  && pip --no-cache-dir install --upgrade .[api,cloud] -i https://mirrors.aliyun.com/pypi/simple/ 
 
 ENTRYPOINT ["bin/startup.sh"]
